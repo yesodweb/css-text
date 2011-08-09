@@ -13,7 +13,6 @@ module Text.CSS.Parse
 import Prelude hiding (takeWhile)
 import Data.Attoparsec.Text
 import Data.Text (Text, strip)
-import Data.Char (isSpace)
 import Control.Applicative ((<|>))
 
 parseAttrs :: Text -> Either String [(Text, Text)]
