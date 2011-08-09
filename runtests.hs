@@ -6,7 +6,6 @@ import Test.Hspec.HUnit ()
 import Test.Hspec.QuickCheck
 import Test.HUnit ((@=?))
 import qualified Data.Text as T
-import Data.Attoparsec.Text (parseOnly)
 import Data.Text.Lazy.Builder (toLazyText)
 import Data.Text.Lazy (toStrict)
 import Data.Text (Text)
@@ -16,22 +15,22 @@ import Control.Arrow ((***))
 main = hspecX $ do
     describe "single attribute parser" $ do
         it "trimming whitespace" $
-            Right ("foo", "bar") @=? parseOnly parseAttr "   foo   : bar   "
+            Right ("foo", "bar") @=? parseAttr "   foo   : bar   "
     describe "multiple attribute parser" $ do
         it "no final semicolon" $
             Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseOnly parseAttrs " foo: bar ;  baz : bin  "
+                parseAttrs " foo: bar ;  baz : bin  "
         it "final semicolon" $
             Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseOnly parseAttrs " foo: bar ;  baz : bin  ;"
+                parseAttrs " foo: bar ;  baz : bin  ;"
         it "ignores comments" $
             Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseOnly parseAttrs " foo: bar ; /* ignored */ baz : bin  ;"
+                parseAttrs " foo: bar ; /* ignored */ baz : bin  ;"
     describe "block parser" $ do
         it "multiple blocks" $
             Right [ ("foo", [("fooK1", "fooV1"), ("fooK2", "fooV2")])
             , ("bar", [("barK1", "barV1"), ("barK2", "barV2")])
-            ] @=? parseOnly parseBlocks (T.concat
+            ] @=? parseBlocks (T.concat
             [ "foo{fooK1:fooV1;/*ignored*/fooK2:fooV2               }\n\n"
             , "/*ignored*/"
             , "bar{barK1:barV1;/*ignored*/barK2:barV2               ;}\n\n/*ignored*/"
@@ -46,7 +45,7 @@ main = hspecX $ do
 
     describe "parse/render" $ do
         prop "is idempotent" $ \bs ->
-            parseOnly parseBlocks (toStrict $ toLazyText $ renderBlocks $ unBlocks bs) == Right (unBlocks bs)
+            parseBlocks (toStrict $ toLazyText $ renderBlocks $ unBlocks bs) == Right (unBlocks bs)
 
 newtype Blocks = Blocks { unBlocks :: [(Text, [(Text, Text)])] }
     deriving (Show, Eq)

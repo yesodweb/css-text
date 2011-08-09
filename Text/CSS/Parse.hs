@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.CSS.Parse
-    ( parseAttr
+    ( attrParser
+    , attrsParser
+    , blockParser
+    , blocksParser
+    , parseAttr
     , parseAttrs
     , parseBlock
     , parseBlocks
@@ -12,9 +16,21 @@ import Data.Text (Text, strip)
 import Data.Char (isSpace)
 import Control.Applicative ((<|>))
 
+parseAttrs :: Text -> Either String [(Text, Text)]
+parseAttrs = parseOnly attrsParser
+
+parseAttr :: Text -> Either String (Text, Text)
+parseAttr = parseOnly attrParser
+
+parseBlocks :: Text -> Either String [(Text, [(Text, Text)])]
+parseBlocks = parseOnly blocksParser
+
+parseBlock :: Text -> Either String (Text, [(Text, Text)])
+parseBlock = parseOnly blockParser
+
 skipWS :: Parser ()
 skipWS = (string "/*" >> endComment >> skipWS)
-     <|> (satisfy isSpace >> skipSpace >> skipWS)
+     <|> (space >> skipSpace >> skipWS)
      <|> return ()
   where
     endComment = do
@@ -24,34 +40,34 @@ skipWS = (string "/*" >> endComment >> skipWS)
             (char '/' >> return ()) <|> endComment
             ) <|> fail "Missing end comment"
 
-parseAttr :: Parser (Text, Text)
-parseAttr = do
+attrParser :: Parser (Text, Text)
+attrParser = do
     skipWS
     key <- takeWhile1 (not . flip elem ":{}")
     _ <- char ':' <|> fail "Missing colon in attribute"
     value <- (takeWhile (not . flip elem ";}"))
     return (strip key, strip value)
 
-parseAttrs :: Parser [(Text, Text)]
-parseAttrs =
+attrsParser :: Parser [(Text, Text)]
+attrsParser =
     go id
   where
     go front = (do
-        a <- parseAttr
+        a <- attrParser
         (char ';' >> return ()) <|> return ()
         skipWS
         go $ front . (:) a
         ) <|> return (front [])
 
-parseBlock :: Parser (Text, [(Text, Text)])
-parseBlock = do
+blockParser :: Parser (Text, [(Text, Text)])
+blockParser = do
     skipWS
     sel <- takeWhile (/= '{')
     _ <- char '{'
-    attrs <- parseAttrs
+    attrs <- attrsParser
     skipWS
     _ <- char '}'
     return (strip sel, attrs)
 
-parseBlocks :: Parser [(Text, [(Text, Text)])]
-parseBlocks = many parseBlock
+blocksParser :: Parser [(Text, [(Text, Text)])]
+blocksParser = many blockParser
