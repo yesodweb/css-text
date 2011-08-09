@@ -10,6 +10,7 @@ import Data.Text (Text)
 import Data.Text.Lazy.Builder (Builder, fromText, singleton)
 import Data.Monoid (mappend, mempty, mconcat)
 
+(<>) :: Builder -> Builder -> Builder
 (<>) = mappend
 
 renderAttr :: (Text, Text) -> Builder
