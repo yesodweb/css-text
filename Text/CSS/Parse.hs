@@ -13,7 +13,8 @@ module Text.CSS.Parse
 import Prelude hiding (takeWhile)
 import Data.Attoparsec.Text
 import Data.Text (Text, strip)
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), many)
+import Data.Char (isSpace)
 
 parseAttrs :: Text -> Either String [(Text, Text)]
 parseAttrs = parseOnly attrsParser
@@ -29,7 +30,7 @@ parseBlock = parseOnly blockParser
 
 skipWS :: Parser ()
 skipWS = (string "/*" >> endComment >> skipWS)
-     <|> (space >> skipSpace >> skipWS)
+     <|> (skip isSpace >> skipWhile isSpace >> skipWS)
      <|> return ()
   where
     endComment = do
