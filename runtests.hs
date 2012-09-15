@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Text.CSS.Parse
 import Text.CSS.Render
-import Test.Hspec.Monadic
-import Test.Hspec.HUnit ()
-import Test.Hspec.QuickCheck
+import Test.Hspec
+import Test.Hspec.QuickCheck (prop)
 import Test.HUnit ((@=?))
 import qualified Data.Text as T
 import Data.Text.Lazy.Builder (toLazyText)
@@ -12,7 +11,8 @@ import Data.Text (Text)
 import Test.QuickCheck
 import Control.Arrow ((***))
 
-main = hspecX $ do
+main :: IO ()
+main = hspec $ do
     describe "single attribute parser" $ do
         it "trimming whitespace" $
             Right ("foo", "bar") @=? parseAttr "   foo   : bar   "
