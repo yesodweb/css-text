@@ -1,10 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Text.CSS.Parse
 import Text.CSS.Render
-import Test.Hspec.Monadic
-import Test.Hspec.HUnit ()
-import Test.Hspec.QuickCheck
-import Test.HUnit ((@=?))
+import Test.Hspec
+import Test.Hspec.QuickCheck (prop)
 import qualified Data.Text as T
 import Data.Text.Lazy.Builder (toLazyText)
 import Data.Text.Lazy (toStrict)
@@ -12,36 +10,39 @@ import Data.Text (Text)
 import Test.QuickCheck
 import Control.Arrow ((***))
 
-main = hspecX $ do
+main :: IO ()
+main = hspec $ do
     describe "single attribute parser" $ do
         it "trimming whitespace" $
-            Right ("foo", "bar") @=? parseAttr "   foo   : bar   "
+            parseAttr "   foo   : bar   " `shouldBe` Right ("foo", "bar")
     describe "multiple attribute parser" $ do
         it "no final semicolon" $
-            Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseAttrs " foo: bar ;  baz : bin  "
+            parseAttrs " foo: bar ;  baz : bin  "
+                `shouldBe` Right [("foo", "bar"), ("baz", "bin")]
         it "final semicolon" $
-            Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseAttrs " foo: bar ;  baz : bin  ;"
+            parseAttrs " foo: bar ;  baz : bin  ;"
+                `shouldBe` Right [("foo", "bar"), ("baz", "bin")]
         it "ignores comments" $
-            Right [("foo", "bar"), ("baz", "bin")] @=?
-                parseAttrs " foo: bar ; /* ignored */ baz : bin  ;"
+            parseAttrs " foo: bar ; /* ignored */ baz : bin  ;"
+                `shouldBe` Right [("foo", "bar"), ("baz", "bin")]
     describe "block parser" $ do
         it "multiple blocks" $
-            Right [ ("foo", [("fooK1", "fooV1"), ("fooK2", "fooV2")])
-            , ("bar", [("barK1", "barV1"), ("barK2", "barV2")])
-            ] @=? parseBlocks (T.concat
+            parseBlocks (T.concat
             [ "foo{fooK1:fooV1;/*ignored*/fooK2:fooV2               }\n\n"
             , "/*ignored*/"
             , "bar{barK1:barV1;/*ignored*/barK2:barV2               ;}\n\n/*ignored*/"
-            ])
+            ]) `shouldBe` Right [
+              ("foo", [("fooK1", "fooV1"), ("fooK2", "fooV2")])
+            , ("bar", [("barK1", "barV1"), ("barK2", "barV2")])
+            ]
 
     describe "render" $ do
         it "works" $
-            "foo{bar:baz;bin:bang}foo2{x:y}" @=? renderBlocks
-                [ ("foo", [("bar", "baz"), ("bin", "bang")])
+            renderBlocks [
+                  ("foo", [("bar", "baz"), ("bin", "bang")])
                 , ("foo2", [("x", "y")])
                 ]
+                `shouldBe` "foo{bar:baz;bin:bang}foo2{x:y}"
 
     describe "parse/render" $ do
         prop "is idempotent" $ \bs ->
