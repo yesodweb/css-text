@@ -4,11 +4,13 @@ module Text.CSS.Render
     , renderAttrs
     , renderBlock
     , renderBlocks
+    , renderNestedBlocks
     ) where
 
 import Data.Text (Text)
 import Data.Text.Lazy.Builder (Builder, fromText, singleton)
 import Data.Monoid (mappend, mempty, mconcat)
+import Text.CSS.Parse
 
 (<>) :: Builder -> Builder -> Builder
 (<>) = mappend
@@ -27,3 +29,13 @@ renderBlock (sel, attrs) =
 
 renderBlocks :: [(Text, [(Text, Text)])] -> Builder
 renderBlocks = mconcat . map renderBlock
+
+renderNestedBlock :: NestedBlock -> Builder
+renderNestedBlock (LeafBlock b) = renderBlock b
+renderNestedBlock (NestedBlock t bs) = fromText t
+                                    <> singleton '{'
+                                    <> renderNestedBlocks bs 
+                                    <> singleton '}'
+
+renderNestedBlocks :: [NestedBlock] -> Builder
+renderNestedBlocks = mconcat . map renderNestedBlock
