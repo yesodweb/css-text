@@ -55,24 +55,20 @@ skipWS = (string "/*" >> endComment >> skipWS)
 attrParser :: Parser (Text, Text)
 attrParser = do
     skipWS
-    key <- takeWhile1 (not . flip elem ":{}")
+    key <- takeWhile1 (\c -> c /= ':' && c /= '{' && c /= '}')
     _ <- char ':' <|> fail "Missing colon in attribute"
     value <- valueParser
     return (strip key, strip value)
 
 valueParser :: Parser Text
-valueParser = takeWhile (not . flip elem ";}")
+valueParser = takeWhile (\c -> c /= ';' && c /= '}')
 
 attrsParser :: Parser [(Text, Text)]
-attrsParser =
-    go id
-  where
-    go front = (do
-        a <- attrParser
-        (char ';' >> return ()) <|> return ()
-        skipWS
-        go $ front . (:) a
-        ) <|> return (front [])
+attrsParser = (do
+    a <- attrParser
+    (char ';' >> skipWS >> ((a :) <$> attrsParser))
+      <|> return [a]
+  ) <|> return []
 
 blockParser :: Parser (Text, [(Text, Text)])
 blockParser = do
