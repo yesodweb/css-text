@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- | Prender CSS with renderNestedBlocks
 module Text.CSS.Render
-    ( renderAttr
-    , renderAttrs
-    , renderBlock
+    ( renderNestedBlocks
     , renderBlocks
-    , renderNestedBlocks
+    , renderBlock
+    , renderAttrs
+    , renderAttr
     ) where
 
 import Data.Text (Text)

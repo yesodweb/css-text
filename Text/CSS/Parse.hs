@@ -1,15 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- | Parse CSS with parseNestedBlocks and render it with renderNestedBlock
 module Text.CSS.Parse
-    ( attrParser
+    ( NestedBlock(..)
+    , parseNestedBlocks
+    , parseBlocks
+    , parseBlock
+    , attrParser
     , attrsParser
     , blockParser
     , blocksParser
     , parseAttr
     , parseAttrs
-    , parseBlock
-    , parseBlocks
-    , parseNestedBlocks
-    , NestedBlock(..)
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -19,7 +20,7 @@ import Control.Applicative ((<|>), many, (<$>))
 import Data.Char (isSpace)
 
 type CssBlock = (Text, [(Text, Text)])
-data NestedBlock = NestedBlock Text [NestedBlock]
+data NestedBlock = NestedBlock Text [NestedBlock] -- ^ for example a media query
                  | LeafBlock CssBlock
                  deriving (Eq, Show)
 
@@ -27,6 +28,7 @@ data NestedBlock = NestedBlock Text [NestedBlock]
 parseNestedBlocks :: Text -> Either String [NestedBlock]
 parseNestedBlocks = parseOnly nestedBlocksParser
 
+-- | The original parser of basic CSS, but throws out media queries
 parseBlocks :: Text -> Either String [CssBlock]
 parseBlocks = parseOnly blocksParser
 
