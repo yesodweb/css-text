@@ -3,7 +3,7 @@ version:         0.1.2
 license:         BSD3
 license-file:    LICENSE
 author:          Michael Snoyman <michael@snoyman.com>
-maintainer:      Michael Snoyman <michael@snoyman.com>
+maintainer:      Michael Snoyman <michael@snoyman.com>, Greg Weber <greg@gregweber.info>
 synopsis:        CSS parser and renderer.
 category:        Web, Yesod
 stability:       Stable
