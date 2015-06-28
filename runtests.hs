@@ -87,7 +87,7 @@ newtype Block = Block { unBlock :: (Text, [(Text, Text)]) }
 instance Arbitrary Block where
     arbitrary = do
         sel <- frequency [
-                     (90, unT <$> arbitrary)
+                     (90, unT `fmap` arbitrary)
                    , (10, return "@font-face")
                    ]
         attrs <- arbitrary
