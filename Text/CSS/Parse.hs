@@ -16,7 +16,7 @@ module Text.CSS.Parse
 import Prelude hiding (takeWhile, take)
 import Data.Attoparsec.Text
 import Data.Text (Text, strip, append)
-import Control.Applicative ((<|>), many, (<$>))
+import Control.Applicative ((<|>), many, (<$>), (<*), (*>))
 import Data.Char (isSpace)
 import Control.Monad (mzero)
 
