@@ -15,9 +15,10 @@ module Text.CSS.Parse
 
 import Prelude hiding (takeWhile, take)
 import Data.Attoparsec.Text
-import Data.Text (Text, strip)
+import Data.Text (Text, strip, append)
 import Control.Applicative ((<|>), many, (<$>))
 import Data.Char (isSpace)
+import Control.Monad (mzero)
 
 type CssBlock = (Text, [(Text, Text)])
 data NestedBlock = NestedBlock Text [NestedBlock] -- ^ for example a media query
@@ -74,7 +75,6 @@ attrsParser = (do
 
 blockParser :: Parser (Text, [(Text, Text)])
 blockParser = do
-    skipWS
     sel <- takeWhile (/= '{')
     _ <- char '{'
     attrs <- attrsParser
@@ -82,46 +82,26 @@ blockParser = do
     _ <- char '}'
     return (strip sel, attrs)
 
-nestedBlockParser :: Parser NestedBlock
-nestedBlockParser = do
-    skipWS
-    sel <- strip <$> takeTill (== '{')
+mediaQueryParser :: Parser NestedBlock
+mediaQueryParser = do
+    _ <- char '@'
+    sel <- strip <$> takeWhile (/= '{')
     _ <- char '{'
-    skipWS
-
-    unknown <- strip <$> takeTill (\c -> c == '{' || c == '}' || c == ':')
-    mc <- peekChar
-    res <- case mc of
-      Nothing -> fail "unexpected end of input"
-      Just c -> nestedParse sel unknown c
-
+    blocks <- nestedBlocksParser
     skipWS
     _ <- char '}'
-    return res
-  where
-    -- no colon means no content
-    nestedParse sel _ '}' = return $ LeafBlock (sel, [])
-
-    nestedParse sel unknown ':' = do
-        _ <- char ':'
-        value <- valueParser
-        (char ';' >> return ()) <|> return ()
-        skipWS
-        moreAttrs <- attrsParser
-        return $ LeafBlock (sel, (unknown, strip value) : moreAttrs)
-
-    -- TODO: handle infinite nesting
-    nestedParse sel unknown '{' = do
-        _ <- char '{'
-        attrs <- attrsParser
-        skipWS
-        _ <- char '}'
-        blocks <- blocksParser
-        return $ NestedBlock sel $ map LeafBlock $ (unknown, attrs) : blocks
-    nestedParse _ _ c = fail $ "expected { or : but got " ++ [c]
+    return $ NestedBlock ("@" `append` sel) $ blocks
 
 blocksParser :: Parser [(Text, [(Text, Text)])]
-blocksParser = many blockParser
+blocksParser =  skipWS *> blockParser `sepBy` skipWS <* skipWS
+
+nestedBlockParser :: Parser NestedBlock
+nestedBlockParser = do
+    mc <- peekChar
+    case mc of
+         Just '}' -> mzero
+         Just '@' -> mediaQueryParser
+         _        -> LeafBlock <$> blockParser
 
 nestedBlocksParser :: Parser [NestedBlock]
-nestedBlocksParser = many nestedBlockParser
+nestedBlocksParser = skipWS *> nestedBlockParser `sepBy` skipWS <* skipWS
