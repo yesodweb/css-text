@@ -69,7 +69,12 @@ newtype Blocks = Blocks { unBlocks :: [(Text, [(Text, Text)])] }
     deriving (Show, Eq)
 
 instance Arbitrary NestedBlock where
-    arbitrary = (LeafBlock . unBlock) `liftM` arbitrary
+    arbitrary = frequency
+      [ (80, (LeafBlock . unBlock) `liftM` arbitrary)
+      , (10, do mediatype <- elements ["print", "screen", "(min-width:768px)"]
+                contents <- arbitrary
+                return (NestedBlock mediatype contents))
+      ]
 
 instance Arbitrary Blocks where
     arbitrary = fmap (Blocks . map unBlock) arbitrary
