@@ -61,17 +61,15 @@ attrParser = do
     key <- takeWhile1 (\c -> c /= ':' && c /= '{' && c /= '}')
     _ <- char ':' <|> fail "Missing colon in attribute"
     value <- valueParser
+    _ <- option ';' (char ';')
+    skipWS
     return (strip key, strip value)
 
 valueParser :: Parser Text
-valueParser = takeWhile (\c -> c /= ';' && c /= '}')
+valueParser = takeWhile (\c -> c /= ';' && c /= '}' && c /= '{')
 
 attrsParser :: Parser [(Text, Text)]
-attrsParser = (do
-    a <- attrParser
-    (char ';' >> skipWS >> ((a :) <$> attrsParser))
-      <|> return [a]
-  ) <|> return []
+attrsParser = many attrParser
 
 blockParser :: Parser (Text, [(Text, Text)])
 blockParser = do
@@ -85,7 +83,7 @@ blockParser = do
 mediaQueryParser :: Parser NestedBlock
 mediaQueryParser = do
     _ <- char '@'
-    sel <- strip <$> takeWhile (/= '{')
+    sel <- strip <$> takeWhile (\c -> c /= '{' && c /= '}')
     _ <- char '{'
     blocks <- nestedBlocksParser
     skipWS
@@ -100,7 +98,7 @@ nestedBlockParser = do
     mc <- peekChar
     case mc of
          Just '}' -> mzero
-         _        -> mediaQueryParser <|> (LeafBlock <$> blockParser)
+         _        -> try mediaQueryParser <|> (LeafBlock <$> blockParser)
 
 nestedBlocksParser :: Parser [NestedBlock]
 nestedBlocksParser = skipWS *> nestedBlockParser `sepBy` skipWS <* skipWS
