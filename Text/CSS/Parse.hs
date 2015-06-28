@@ -100,8 +100,7 @@ nestedBlockParser = do
     mc <- peekChar
     case mc of
          Just '}' -> mzero
-         Just '@' -> mediaQueryParser
-         _        -> LeafBlock <$> blockParser
+         _        -> mediaQueryParser <|> (LeafBlock <$> blockParser)
 
 nestedBlocksParser :: Parser [NestedBlock]
 nestedBlocksParser = skipWS *> nestedBlockParser `sepBy` skipWS <* skipWS
