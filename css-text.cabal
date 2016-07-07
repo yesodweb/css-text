@@ -1,6 +1,6 @@
 name:            css-text
-version:         0.1.2.1
-license:         BSD3
+version:         0.1.2.2
+license:         MIT
 license-file:    LICENSE
 author:          Michael Snoyman <michael@snoyman.com>
 maintainer:      Michael Snoyman <michael@snoyman.com>, Greg Weber <greg@gregweber.info>
@@ -10,7 +10,7 @@ stability:       Stable
 cabal-version:   >= 1.8
 build-type:      Simple
 homepage:        http://www.yesodweb.com/
-extra-source-files: runtests.hs
+extra-source-files: runtests.hs README.md ChangeLog.md
 
 library
     build-depends:   base                      >= 4        && < 5
@@ -31,4 +31,4 @@ test-suite runtests
 
 source-repository head
   type:     git
-  location: git://github.com/yesodweb/css-text.git
+  location: https://github.com/yesodweb/css-text.git
