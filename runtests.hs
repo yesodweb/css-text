@@ -60,6 +60,10 @@ main = hspec $ do
           `shouldBe` "foo{bar:baz;bin:bang}foo2{x:y}"
 
   describe "parse/render" $ do
+    it "three levels of nesting" $ do
+      let bs = [NestedBlock "a" [NestedBlock "b" [LeafBlock ("c",[])]]]
+          txt = "a{b{c{}}}"
+      parseNestedBlocks txt `shouldBe` Right bs
     prop "idempotent blocks" $ \bs ->
       parseBlocks (toStrict $ toLazyText $ renderBlocks $ unBlocks bs) == Right (unBlocks bs)
     prop "idempotent nested blocks" $ \bs ->
