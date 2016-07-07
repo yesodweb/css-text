@@ -63,7 +63,7 @@ main = hspec $ do
     prop "idempotent blocks" $ \bs ->
       parseBlocks (toStrict $ toLazyText $ renderBlocks $ unBlocks bs) == Right (unBlocks bs)
     prop "idempotent nested blocks" $ \bs ->
-      parseNestedBlocks (toStrict $ toLazyText $ renderNestedBlocks bs) == Right bs
+      parseNestedBlocks (toStrict $ toLazyText $ renderNestedBlocks bs) `shouldBe` Right bs
 
 newtype Blocks = Blocks { unBlocks :: [(Text, [(Text, Text)])] }
     deriving (Show, Eq)
