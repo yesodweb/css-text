@@ -18,7 +18,7 @@ library
                    , attoparsec                >= 0.10.2.0
 
     if !impl(ghc >= 8.0)
-    build-depends:   semigroups                >= 0.16.1
+      build-depends: semigroups                >= 0.16.1
 
     exposed-modules: Text.CSS.Parse
                      Text.CSS.Render
