@@ -10,11 +10,9 @@ module Text.CSS.Render
 
 import Data.Text (Text)
 import Data.Text.Lazy.Builder (Builder, fromText, singleton)
-import Data.Monoid (mappend, mempty, mconcat)
+import Data.Monoid (mempty, mconcat)
+import Data.Semigroup ((<>))
 import Text.CSS.Parse
-
-(<>) :: Builder -> Builder -> Builder
-(<>) = mappend
 
 renderAttr :: (Text, Text) -> Builder
 renderAttr (k, v) = fromText k <> singleton ':' <> fromText v
