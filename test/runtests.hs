@@ -50,6 +50,11 @@ main = hspec $ do
             , LeafBlock ("a, a:visited", [("text-decoration", "underline")])
             ]
           ]
+      parseNestedBlocks "@media whatever { foo { color: rgb(255, 255, 240); } }  bar { }"
+        `shouldBe` Right
+          [ NestedBlock "@media whatever" [ LeafBlock ("foo", [("color", "rgb(255, 255, 240)")]) ]
+          , LeafBlock ("bar", [])
+          ]
 
   describe "render" $ -- do
     it "works" $

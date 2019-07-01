@@ -75,12 +75,17 @@ attrsParser = (do
 blockParser :: Parser (Text, [(Text, Text)])
 blockParser = do
     skipWS
-    sel <- takeWhile (/= '{')
-    _ <- char '{'
-    attrs <- attrsParser
-    skipWS
-    _ <- char '}'
-    return (strip sel, attrs)
+    sel <- takeWhile (notInClass "{}")
+    c <- peekChar
+    case c of
+      Just '{' -> do
+        _ <- char '{'
+        attrs <- attrsParser
+        skipWS
+        _ <- char '}'
+        return (strip sel, attrs)
+      _ ->
+        fail "this is not a block"
 
 nestedBlockParser :: Parser NestedBlock
 nestedBlockParser = do
