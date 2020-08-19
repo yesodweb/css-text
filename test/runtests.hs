@@ -50,6 +50,11 @@ main = hspec $ do
             , LeafBlock ("a, a:visited", [("text-decoration", "underline")])
             ]
           ]
+      parseNestedBlocks "@media whatever { foo { color: rgb(255, 255, 240); } }  bar { }"
+        `shouldBe` Right
+          [ NestedBlock "@media whatever" [ LeafBlock ("foo", [("color", "rgb(255, 255, 240)")]) ]
+          , LeafBlock ("bar", [])
+          ]
 
   describe "render" $ -- do
     it "works" $
@@ -73,9 +78,11 @@ newtype Blocks = Blocks { unBlocks :: [(Text, [(Text, Text)])] }
     deriving (Show, Eq)
 
 instance Arbitrary NestedBlock where
-    arbitrary = frequency
+    arbitrary = resize 4 $ frequency
       [ (80, (LeafBlock . unBlock) `liftM` arbitrary)
-      , (10, do mediatype <- elements ["print", "screen", "(min-width:768px)"]
+      , (10, do mediatype <- elements ["@print", "@screen",
+                                       "@media (min-width:768px)",
+                                       "@media screen and (max-width: 300px)"]
                 contents <- arbitrary
                 return (NestedBlock mediatype contents))
       ]
@@ -88,8 +95,12 @@ newtype Block = Block { unBlock :: (Text, [(Text, Text)]) }
 
 instance Arbitrary Block where
     arbitrary = do
-        (sel, attrs) <- arbitrary
-        return $ Block (unT sel, unAttrs attrs)
+        sel <- frequency [
+                     (90, unT `fmap` arbitrary)
+                   , (10, return "@font-face")
+                   ]
+        attrs <- arbitrary
+        return $ Block (sel, unAttrs attrs)
 
 newtype Attrs = Attrs { unAttrs :: [(Text, Text)] }
 
